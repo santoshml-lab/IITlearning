@@ -1,0 +1,241 @@
+
+<!DOCTYPE html><html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>IIT Learning Hub 🚀</title><style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins,sans-serif;
+}
+
+body{
+background:#020617;
+color:white;
+padding:20px;
+}
+
+.container{
+max-width:1200px;
+margin:auto;
+}
+
+.card{
+background:#0f172a;
+padding:20px;
+border-radius:20px;
+margin-bottom:20px;
+border:1px solid rgba(255,255,255,.08);
+}
+
+h1{
+text-align:center;
+margin-bottom:20px;
+color:#38bdf8;
+}
+
+select,input{
+width:100%;
+padding:14px;
+margin-top:10px;
+border:none;
+border-radius:12px;
+background:#111827;
+color:white;
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:15px;
+border:none;
+border-radius:12px;
+background:#38bdf8;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+opacity:.9;
+}
+
+#output{
+line-height:1.8;
+white-space:pre-wrap;
+}
+
+.option{
+background:#111827;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#1e293b;
+}
+
+.result{
+margin-top:15px;
+font-size:18px;
+font-weight:bold;
+}
+
+</style></head><body><div class="container"><h1>🚀 IIT Learning Hub</h1><div class="card"><select id="subject">
+<option>Physics</option>
+<option>Chemistry</option>
+<option>Mathematics</option>
+</select><input
+id="topic"
+placeholder="Enter Topic (Example: Calculus)"
+
+«»
+
+<button onclick="startLearning()">
+📚 Start Learning
+</button></div><div class="card"><h2>🧠 Learning Module</h2><div id="output">
+Enter a topic and start learning.
+</div></div><div class="card"><h2>🎯 MCQ Practice</h2><div id="questionBox"></div><div id="optionsBox"></div><button onclick="checkAnswer()">
+✅ Check Answer
+</button><div id="result" class="result"></div></div></div><script>
+
+const API =
+"https://iitpreparation.onrender.com";
+
+let selected="";
+let correct="";
+
+async function startLearning(){
+
+const subject=
+document.getElementById("subject").value;
+
+const topic=
+document.getElementById("topic").value;
+
+if(!topic){
+alert("Enter topic");
+return;
+}
+
+document.getElementById("output").innerHTML=
+"Loading...";
+
+let res=
+await fetch(`${API}/topic-learn`,{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+subject,
+topic
+})
+
+});
+
+let data=await res.json();
+
+let text=data.result;
+
+document.getElementById("output").innerText=text;
+
+extractMCQ(text);
+
+}
+
+function extractMCQ(text){
+
+let lines=text.split("\n");
+
+let questionBox=
+document.getElementById("questionBox");
+
+let optionsBox=
+document.getElementById("optionsBox");
+
+questionBox.innerHTML="";
+optionsBox.innerHTML="";
+
+lines.forEach(line=>{
+
+if(line.startsWith("Question")){
+questionBox.innerHTML=line;
+}
+
+if(
+line.startsWith("A")||
+line.startsWith("B")||
+line.startsWith("C")||
+line.startsWith("D")
+){
+
+let div=document.createElement("div");
+
+div.className="option";
+
+div.innerText=line;
+
+div.onclick=()=>{
+
+selected=line[0];
+
+};
+
+optionsBox.appendChild(div);
+
+}
+
+if(line.includes("Correct Answer")){
+
+correct=
+line.replace("Correct Answer:","")
+.trim()[0];
+
+}
+
+});
+
+}
+
+async function checkAnswer(){
+
+if(!selected){
+alert("Select an option");
+return;
+}
+
+let res=
+await fetch(`${API}/check-mcq`,{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+selected_answer:selected,
+correct_answer:correct
+
+})
+
+});
+
+let data=await res.json();
+
+document.getElementById("result").innerHTML=
+data.message;
+
+}
+
+</script></body>
+</html>
